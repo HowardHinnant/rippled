@@ -18,6 +18,7 @@
 //==============================================================================
 
 #include <ripple/basics/Slice.h>
+#include <ripple/basics/algorithm.h>
 #include <ripple/beast/unit_test.h>
 #include <ripple/json/to_string.h>
 #include <ripple/protocol/STAmount.h>
@@ -1811,6 +1812,19 @@ public:
             soTest4.setFieldVL(sfTxnSignature, saMultiSignature);
             soTest4.setFieldAmount(sfAmount, STAmount(10000));
             testMalformedSigningAccount(soTest4, false);
+        }
+        {
+            // Test split.  Make a valid Signer object.
+            STObject soTest1(sfSigner);
+            soTest1.setAccountID(sfAccount, id2);
+            soTest1.setFieldVL(sfSigningPubKey, kp1.first.slice());
+            soTest1.setFieldVL(sfTxnSignature, saMultiSignature);
+            STArray ar;
+            for (int i = 0; i < 6; ++i)
+                ar.push_back(soTest1);
+            auto ar2 = split(ar);
+            BEAST_EXPECT(ar.size() == 3);
+            BEAST_EXPECT(ar2.size() == 3);
         }
     }
 };

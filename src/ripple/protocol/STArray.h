@@ -44,6 +44,12 @@ public:
     STArray(SerialIter& sit, SField const& f, int depth = 0);
     explicit STArray(int n);
     explicit STArray(SField const& f);
+    template <
+        class Iter,
+        class = std::enable_if_t<std::is_convertible_v<
+            typename std::iterator_traits<Iter>::reference,
+            STObject>>>
+    explicit STArray(Iter f, Iter e);
     STArray&
     operator=(STArray const&) = default;
     STArray&
@@ -191,7 +197,18 @@ public:
     {
         return v_.empty();
     }
+
+    iterator
+    erase(const_iterator first, const_iterator last)
+    {
+        return v_.erase(first, last);
+    }
 };
+
+template <class Iter, class>
+STArray::STArray(Iter f, Iter e) : v_(f, e)
+{
+}
 
 }  // namespace ripple
 

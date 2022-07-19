@@ -24,6 +24,7 @@
 #include <utility>
 
 namespace ripple {
+auto constexpr muldiv_max = std::numeric_limits<std::uint64_t>::max();
 
 /** Return value*mul/div accurately.
     Computes the result of the multiplication and division in
@@ -31,14 +32,11 @@ namespace ripple {
     Throws:
         None
     Returns:
-        `std::pair`:
-            `first` is `false` if the calculation overflows,
-                `true` if the calculation is safe.
-            `second` is the result of the calculation if
-                `first` is `false`, max value of `uint64_t`
-                if `true`.
+        `std::optional`:
+            If the calculation overflows, this function returns std::nullopt
+            otherwise, the result of the calculation is returned.
 */
-std::pair<bool, std::uint64_t>
+std::optional<std::uint64_t>
 mulDiv(std::uint64_t value, std::uint64_t mul, std::uint64_t div);
 
 }  // namespace ripple

@@ -25,7 +25,7 @@
 
 namespace ripple {
 
-std::pair<bool, std::uint64_t>
+std::optional<std::uint64_t>
 mulDiv(std::uint64_t value, std::uint64_t mul, std::uint64_t div)
 {
     using namespace boost::multiprecision;
@@ -35,12 +35,10 @@ mulDiv(std::uint64_t value, std::uint64_t mul, std::uint64_t div)
 
     result /= div;
 
-    auto constexpr limit = std::numeric_limits<std::uint64_t>::max();
+    if (result > ripple::muldiv_max)
+        return std::nullopt;
 
-    if (result > limit)
-        return {false, limit};
-
-    return {true, static_cast<std::uint64_t>(result)};
+    return static_cast<std::uint64_t>(result);
 }
 
 }  // namespace ripple

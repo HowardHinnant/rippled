@@ -34,14 +34,6 @@ class TimeKeeper : public beast::abstract_clock<NetClock>
 public:
     virtual ~TimeKeeper() = default;
 
-    /** Launch the internal thread.
-
-        The internal thread synchronizes local network time
-        using the provided list of SNTP servers.
-    */
-    virtual void
-    run(std::vector<std::string> const& servers) = 0;
-
     /** Returns the estimate of wall time, in network time.
 
         The network time is wall time adjusted for the Ripple

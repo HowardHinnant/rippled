@@ -1158,9 +1158,6 @@ ApplicationImp::setup()
     // Optionally turn off logging to console.
     logs_->silent(config_->silent());
 
-    if (!config_->standalone())
-        timeKeeper_->run(config_->SNTP_SERVERS);
-
     if (!initRelationalDatabase() || !initNodeStore())
         return false;
 

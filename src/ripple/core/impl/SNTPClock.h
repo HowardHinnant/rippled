@@ -33,14 +33,12 @@ namespace ripple {
 class SNTPClock : public beast::abstract_clock<std::chrono::system_clock>
 {
 public:
-    virtual void
-    run(std::vector<std::string> const& servers) = 0;
-
     virtual duration
     offset() const = 0;
 };
 
-extern std::unique_ptr<SNTPClock> make_SNTPClock(beast::Journal);
+extern std::unique_ptr<SNTPClock>
+make_SNTPClock();
 
 }  // namespace ripple
 

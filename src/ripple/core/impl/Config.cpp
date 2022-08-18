@@ -466,9 +466,6 @@ Config::loadFromString(std::string const& fileContents)
     if (auto s = getIniFileSection(secConfig, SECTION_IPS_FIXED))
         IPS_FIXED = *s;
 
-    if (auto s = getIniFileSection(secConfig, SECTION_SNTP))
-        SNTP_SERVERS = *s;
-
     {
         std::string dbPath;
         if (getSingleSection(secConfig, "database_path", dbPath, j_))

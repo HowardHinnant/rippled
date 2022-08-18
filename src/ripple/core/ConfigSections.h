@@ -81,7 +81,6 @@ struct ConfigSection
 #define SECTION_RELAY_VALIDATIONS "relay_validations"
 #define SECTION_RPC_STARTUP "rpc_startup"
 #define SECTION_SIGNING_SUPPORT "signing_support"
-#define SECTION_SNTP "sntp_servers"
 #define SECTION_SSL_VERIFY "ssl_verify"
 #define SECTION_SSL_VERIFY_FILE "ssl_verify_file"
 #define SECTION_SSL_VERIFY_DIR "ssl_verify_dir"

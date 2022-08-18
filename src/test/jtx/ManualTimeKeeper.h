@@ -31,9 +31,6 @@ class ManualTimeKeeper : public TimeKeeper
 public:
     ManualTimeKeeper();
 
-    void
-    run(std::vector<std::string> const& servers) override;
-
     time_point
     now() const override;
 

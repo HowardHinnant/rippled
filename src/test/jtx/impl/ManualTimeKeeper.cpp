@@ -28,11 +28,6 @@ ManualTimeKeeper::ManualTimeKeeper() : closeOffset_{}, now_(0s)
 {
 }
 
-void
-ManualTimeKeeper::run(std::vector<std::string> const& servers)
-{
-}
-
 auto
 ManualTimeKeeper::now() const -> time_point
 {

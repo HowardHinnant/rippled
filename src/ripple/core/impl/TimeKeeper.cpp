@@ -43,14 +43,8 @@ private:
 
 public:
     explicit TimeKeeperImpl(beast::Journal j)
-        : j_(j), closeOffset_{}, clock_(make_SNTPClock(j))
+        : j_(j), closeOffset_{}, clock_(make_SNTPClock())
     {
-    }
-
-    void
-    run(std::vector<std::string> const& servers) override
-    {
-        clock_->run(servers);
     }
 
     time_point

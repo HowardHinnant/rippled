@@ -66,21 +66,26 @@ public:
         return false;
     }
 
-    std::shared_ptr<FullBelowCache> getFullBelowCache(std::uint32_t) override
+    void
+    resetCacheFor(std::uint32_t) override
+    {
+        (void)0;
+    }
+
+    std::shared_ptr<FullBelowCache>
+    getFullBelowCache(std::uint32_t) override
     {
         return fbCache_;
     }
 
-    std::shared_ptr<TreeNodeCache> getTreeNodeCache(std::uint32_t) override
+    std::shared_ptr<TreeNodeCache>
+    getTreeNodeCache(std::uint32_t) override
     {
         return tnCache_;
     }
 
     void
     sweep() override;
-
-    void
-    reset() override;
 
     void
     missingNode(std::uint32_t seq) override;
@@ -92,6 +97,7 @@ public:
     }
 
 private:
+
     Application& app_;
     NodeStore::Database& db_;
     beast::Journal const j_;
@@ -105,6 +111,9 @@ private:
 
     void
     acquire(uint256 const& hash, std::uint32_t seq);
+
+    void
+    initCaches();
 };
 
 }  // namespace ripple

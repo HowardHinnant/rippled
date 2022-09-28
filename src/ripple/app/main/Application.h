@@ -56,15 +56,13 @@ class AmendmentTable;
 
 template <
     class Key,
-    class T,
-    bool IsKeyCache,
+    class Value,
     class Hash,
-    class KeyEqual,
-    class Mutex>
+    class KeyEqual>
 class TaggedCache;
 class STLedgerEntry;
 using SLE = STLedgerEntry;
-using CachedSLEs = TaggedCache<uint256, SLE const>;
+class CachedSLEs;
 
 class CollectorManager;
 class Family;

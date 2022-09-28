@@ -32,6 +32,8 @@ namespace tests {
 class TestNodeFamily : public Family
 {
 private:
+    beast::Journal const j_;
+
     std::unique_ptr<NodeStore::Database> db_;
 
     std::shared_ptr<FullBelowCache> fbCache_;
@@ -40,21 +42,28 @@ private:
     TestStopwatch clock_;
     NodeStore::DummyScheduler scheduler_;
 
-    beast::Journal const j_;
+private:
+    std::shared_ptr<TreeNodeCache>
+    initTreeNodeCache()
+    {
+        return std::make_shared<TreeNodeCache>(
+            "App family tree node cache",
+            65536,
+            std::chrono::minutes{1},
+            clock_,
+            j_);
+    }
 
 public:
     TestNodeFamily(beast::Journal j)
-        : fbCache_(std::make_shared<FullBelowCache>(
+        : j_(j)
+        , fbCache_(std::make_shared<FullBelowCache>(
               "App family full below cache",
               clock_,
-              j))
-        , tnCache_(std::make_shared<TreeNodeCache>(
-              "App family tree node cache",
-              65536,
-              std::chrono::minutes{1},
-              clock_,
-              j))
-        , j_(j)
+              j,
+              100000,
+              std::chrono::minutes{2}))
+        , tnCache_(initTreeNodeCache())
     {
         Section testSection;
         testSection.set("type", "memory");
@@ -81,12 +90,20 @@ public:
         return j_;
     }
 
-    std::shared_ptr<FullBelowCache> getFullBelowCache(std::uint32_t) override
+    void
+    resetCacheFor(std::uint32_t) override
+    {
+        (void)0;
+    }
+
+    std::shared_ptr<FullBelowCache>
+    getFullBelowCache(std::uint32_t) override
     {
         return fbCache_;
     }
 
-    std::shared_ptr<TreeNodeCache> getTreeNodeCache(std::uint32_t) override
+    std::shared_ptr<TreeNodeCache>
+    getTreeNodeCache(std::uint32_t) override
     {
         return tnCache_;
     }
@@ -114,13 +131,6 @@ public:
     missingNode(uint256 const& refHash, std::uint32_t refNum) override
     {
         Throw<std::runtime_error>("missing node");
-    }
-
-    void
-    reset() override
-    {
-        fbCache_->reset();
-        tnCache_->reset();
     }
 
     beast::manual_clock<std::chrono::steady_clock>

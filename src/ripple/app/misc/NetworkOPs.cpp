@@ -1217,8 +1217,7 @@ NetworkOPsImp::processTransaction(
         return;
     }
 
-    transaction =
-        app_.getMasterTransaction().canonicalize(transaction);
+    transaction = app_.getMasterTransaction().canonicalize(transaction);
 
     if (bLocal)
         doTransactionSync(transaction, bUnlimited, failType);

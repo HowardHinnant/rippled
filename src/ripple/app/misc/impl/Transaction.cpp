@@ -62,8 +62,6 @@ sqlTransactionStatus(boost::optional<std::string> const& status)
     return INVALID;
 }
 
-
-
 std::variant<
     std::pair<std::shared_ptr<Transaction>, std::shared_ptr<TxMeta>>,
     TxSearched>

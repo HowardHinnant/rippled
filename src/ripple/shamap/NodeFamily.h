@@ -97,7 +97,6 @@ public:
     }
 
 private:
-
     Application& app_;
     NodeStore::Database& db_;
     beast::Journal const j_;

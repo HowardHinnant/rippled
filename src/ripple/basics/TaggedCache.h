@@ -385,9 +385,7 @@ public:
     }
 
     bool
-    insert_or_assign(
-        Key const& key,
-        std::shared_ptr<Value> const& data)
+    insert_or_assign(Key const& key, std::shared_ptr<Value> const& data)
     {
         return canonicalize(
             key,
@@ -401,19 +399,6 @@ public:
         return canonicalize(
             key, data, [](std::shared_ptr<Value> const&) { return false; });
     }
-
-#if 0
-    [[deprecated]]
-    bool
-    exists(Key const& key)
-    {
-        auto& p = getPartition(key);
-
-        std::lock_guard l(p.mutex);
-
-        return (p.items.find(key) != p.items.end());
-    }
-#endif
 
     [[nodiscard]] std::shared_ptr<Value>
     fetch(Key const& key, bool remove = false)

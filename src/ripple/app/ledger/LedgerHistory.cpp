@@ -509,9 +509,8 @@ LedgerHistory::fixIndex(LedgerIndex ledgerIndex, LedgerHash const& ledgerHash)
 void
 LedgerHistory::clearLedgerCachePrior(LedgerIndex seq)
 {
-    ledgerCache_.erase_if(std::execution::par, [seq](Ledger const& ledger) {
-        return ledger.info().seq < seq;
-    });
+    ledgerCache_.erase_if(
+        [seq](Ledger const& ledger) { return ledger.info().seq < seq; });
 }
 
 Json::Value

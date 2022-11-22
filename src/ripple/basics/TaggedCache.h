@@ -31,7 +31,6 @@
 #include <ripple/json/json_value.h>
 #include <array>
 #include <atomic>
-#include <execution>
 #include <functional>
 #include <mutex>
 #include <thread>
@@ -456,18 +455,15 @@ public:
 
     /** Erases all elements that match the predicate.
 
-        @param policy the execution policy to use; only two execution policies
-                      are supported at this time: either `std::execution::seq`
-                      or `std::execution::par`.
         @param pred the predicate that decides whether to delete an item.
 
         @note The predicate function can inspect and modify the state of the
               internal object (e.g. by pinning or unpinning it).
      * */
     /** @{ */
-    template <class ExecutionPolicy, class Pred>
+    template <class Pred>
     void
-    erase_if_impl(ExecutionPolicy&& policy, Pred pred, std::string op = {})
+    erase_if_impl(Pred pred, std::string op = {})
     {
         auto eraser =
             [op, this, now = clock_.now(), &pred](Partition& partition) {
@@ -554,58 +550,44 @@ public:
 
         auto const start = clock_.now();
 
-        if constexpr (false)
+        auto const tc = std::thread::hardware_concurrency();
+
+        // For systems with a small number of cores always use the single
+        // threaded algorithm.
+        if (tc <= 4)
         {
-            // Although libstdc++ has support for execution policies, it appears
-            // that std::execution::par doesn't _really_ do anything at least as
-            // of this writing. So we don't use this implementation.
-            return std::for_each(
-                policy, partitions_.begin(), partitions_.end(), eraser);
+            for (auto& p : partitions_)
+                eraser(p);
         }
         else
         {
-            auto const tc = std::thread::hardware_concurrency();
+            // We want to limit the number of threads to avoid resource
+            // starvation.
+            std::vector<std::thread> threads([tc]() {
+                if (tc <= 8)
+                    return std::min<std::size_t>(tc - 1, 4);
 
-            // For systems with a small number of cores always use the single
-            // threaded algorithm.
-            if (tc <= 4 ||
-                std::is_same_v<
-                    decltype(policy),
-                    std::execution::sequenced_policy>)
+                if (tc <= 16)
+                    return std::min<std::size_t>(tc, 8);
+
+                return std::min<std::size_t>(tc, 16);
+            }());
+
+            for (std::size_t i = 0; i != threads.size(); ++i)
             {
-                for (auto& p : partitions_)
-                    eraser(p);
+                threads[i] = std::thread(
+                    [this, &eraser, step = threads.size()](std::size_t j) {
+                        while (j < partitions_.size())
+                        {
+                            eraser(partitions_[j]);
+                            j += step;
+                        }
+                    },
+                    i);
             }
-            else
-            {
-                // We want to limit the number of threads to avoid resource
-                // starvation.
-                std::vector<std::thread> threads([tc]() {
-                    if (tc <= 8)
-                        return std::min<std::size_t>(tc - 1, 4);
 
-                    if (tc <= 16)
-                        return std::min<std::size_t>(tc, 8);
-
-                    return std::min<std::size_t>(tc, 16);
-                }());
-
-                for (std::size_t i = 0; i != threads.size(); ++i)
-                {
-                    threads[i] = std::thread(
-                        [this, &eraser, step = threads.size()](std::size_t j) {
-                            while (j < partitions_.size())
-                            {
-                                eraser(partitions_[j]);
-                                j += step;
-                            }
-                        },
-                        i);
-                }
-
-                for (auto& t : threads)
-                    t.join();
-            }
+            for (auto& t : threads)
+                t.join();
         }
 
         if (auto const d = clock_.now() - start; d >= std::chrono::seconds(2))
@@ -624,14 +606,13 @@ public:
     }
 
     template <
-        class ExecutionPolicy,
         class Pred,
         class V = Value,
         class = std::enable_if_t<std::is_invocable_r_v<bool, Pred, V&>>>
     void
-    erase_if(ExecutionPolicy&& policy, Pred&& pred)
+    erase_if(Pred&& pred)
     {
-        erase_if_impl(policy, [this, &pred](auto it) {
+        erase_if_impl([this, &pred](auto it) {
             if (auto d = it->second.data())
                 return pred(*d);
 
@@ -640,25 +621,21 @@ public:
     }
 
     template <
-        class ExecutionPolicy,
         class Pred,
         class = std::enable_if_t<std::is_invocable_r_v<bool, Pred, Entry&>>>
     void
-    erase_if(ExecutionPolicy&& policy, Pred&& pred, std::string op = {})
+    erase_if(Pred&& pred, std::string op = {})
     {
-        erase_if_impl(
-            policy, [&pred](auto& it) { return pred(it->second); }, op);
+        erase_if_impl([&pred](auto& it) { return pred(it->second); }, op);
     }
 
     template <
-        class ExecutionPolicy,
         class Pred,
         class = std::enable_if_t<std::is_invocable_r_v<bool, Pred, Key const&>>>
     void
-    erase_if(ExecutionPolicy&& policy, Pred pred, std::string op = {})
+    erase_if(Pred pred, std::string op = {})
     {
-        erase_if_impl(
-            policy, [&pred](auto it) { return pred(it->first); }, op);
+        erase_if_impl([&pred](auto it) { return pred(it->first); }, op);
     }
     /** @} */
 
@@ -683,7 +660,6 @@ public:
         }();
 
         erase_if(
-            std::execution::par,
             [this,
              expire,
              oversized = (totalSize_.load() > targetSize_),

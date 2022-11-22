@@ -32,7 +32,6 @@
 #include <ripple/json/json_value.h>
 #include <array>
 #include <atomic>
-#include <execution>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -248,9 +247,8 @@ public:
     }
 
     /** Erases all elements that match the predicate. */
-    template <class ExecutionPolicy>
     void
-    sweep(ExecutionPolicy&& policy)
+    sweep()
     {
         // Calculate the expiration time
         auto const expire = [this]() {
@@ -301,8 +299,7 @@ public:
 
         // For systems with a small number of cores always use the single
         // threaded algorithm.
-        if (tc <= 4 ||
-            std::is_same_v<decltype(policy), std::execution::sequenced_policy>)
+        if (tc <= 4)
         {
             for (auto& p : partitions_)
                 eraser(p, start);
@@ -427,7 +424,7 @@ public:
     sweep()
     {
         if (auto c = cache_.load())
-            c->sweep(std::execution::par);
+            c->sweep();
     }
 
     /** Refresh the last access time of an item, if it exists.

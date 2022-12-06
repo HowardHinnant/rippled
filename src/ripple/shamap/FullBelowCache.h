@@ -29,6 +29,7 @@
 #include <ripple/beast/insight/Insight.h>
 #include <ripple/beast/utility/Journal.h>
 #include <ripple/beast/utility/WrappedSink.h>
+#include <ripple/beast/utility/atomic_shared_ptr.h>
 #include <ripple/json/json_value.h>
 #include <array>
 #include <atomic>

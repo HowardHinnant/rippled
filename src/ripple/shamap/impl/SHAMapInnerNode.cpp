@@ -256,18 +256,6 @@ SHAMapInnerNode::serializeWithPrefix(Serializer& s) const
         [&](SHAMapHash const& hh) { s.addBitString(hh.as_uint256()); });
 }
 
-bool
-SHAMapInnerNode::isEmpty() const
-{
-    return isBranch_ == 0;
-}
-
-int
-SHAMapInnerNode::getBranchCount() const
-{
-    return popcnt16(isBranch_);
-}
-
 std::string
 SHAMapInnerNode::getString(const SHAMapNodeID& id) const
 {
@@ -297,7 +285,7 @@ SHAMapInnerNode::setChild(int m, std::shared_ptr<SHAMapTreeNode> child)
             return isBranch_ & ~(1 << m);
     }();
 
-    auto const dstToAllocate = popcnt16(dstIsBranch);
+    auto const dstToAllocate = std::popcount(dstIsBranch);
     // change hashesAndChildren to remove the element, or make room for the
     // added element, if necessary
     hashesAndChildren_ = TaggedPointer(

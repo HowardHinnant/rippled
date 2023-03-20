@@ -280,9 +280,9 @@ SHAMapInnerNode::setChild(int m, std::shared_ptr<SHAMapTreeNode> child)
 
     auto const dstIsBranch = [&] {
         if (child)
-            return isBranch_ | (1 << m);
+            return isBranch_ | (1u << m);
         else
-            return isBranch_ & ~(1 << m);
+            return isBranch_ & ~(1u << m);
     }();
 
     auto const dstToAllocate = std::popcount(dstIsBranch);

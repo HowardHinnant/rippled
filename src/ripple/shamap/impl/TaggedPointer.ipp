@@ -263,7 +263,7 @@ TaggedPointer::getChildIndex(std::uint16_t isBranch, int i) const
 
     // mask sets all the bits >=i to zero and all the bits <i to
     // one.
-    auto const mask = (1 << i) - 1;
+    auto const mask = (1u << i) - 1;
     return std::popcount(isBranch & mask);
 }
 

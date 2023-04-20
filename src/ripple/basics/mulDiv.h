@@ -21,6 +21,8 @@
 #define RIPPLE_BASICS_MULDIV_H_INCLUDED
 
 #include <cstdint>
+#include <limits>
+#include <optional>
 #include <utility>
 
 namespace ripple {

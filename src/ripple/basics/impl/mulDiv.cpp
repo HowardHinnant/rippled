@@ -21,6 +21,7 @@
 #include <ripple/basics/mulDiv.h>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <limits>
+#include <optional>
 #include <utility>
 
 namespace ripple {

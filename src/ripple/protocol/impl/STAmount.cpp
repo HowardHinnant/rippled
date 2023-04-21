@@ -1458,6 +1458,16 @@ public:
     }
 };
 
+class temporarilySetNumberRoundMode
+{
+    saveNumberRoundMode saved_;
+public:
+    explicit temporarilySetNumberRoundMode(Number::rounding_mode mode) noexcept
+        : saved_{Number::setround(mode)}
+    {
+    }
+};
+
 }  // anonymous namespace
 
 STAmount
@@ -1478,11 +1488,11 @@ mulRoundStrict(
     Issue const& issue,
     bool roundUp)
 {
-    return mulRoundImpl<canonicalizeRoundStrict, saveNumberRoundMode>(
+    return mulRoundImpl<canonicalizeRoundStrict, temporarilySetNumberRoundMode>(
         v1, v2, issue, roundUp);
 }
 
-// We might need to call saveNumberRoundMode.  Allow the caller
+// We might need to call temporarilySetNumberRoundMode.  Allow the caller
 // to pass either that or a replacement as a template parameter.
 template <typename SaveRound>
 static STAmount
@@ -1580,7 +1590,7 @@ divRoundStrict(
     Issue const& issue,
     bool roundUp)
 {
-    return divRoundImpl<saveNumberRoundMode>(num, den, issue, roundUp);
+    return divRoundImpl<temporarilySetNumberRoundMode>(num, den, issue, roundUp);
 }
 
 }  // namespace ripple

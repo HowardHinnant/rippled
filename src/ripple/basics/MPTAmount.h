@@ -56,7 +56,7 @@ public:
     {
     }
 
-    constexpr explicit MPTAmount(mpt_type value) : mpt_(value)
+    constexpr MPTAmount(mpt_type value) : mpt_(value)
     {
     }
 
@@ -64,26 +64,6 @@ public:
     {
         mpt_ = 0;
         return *this;
-    }
-
-    MPTAmount&
-    operator=(mpt_type value)
-    {
-        mpt_ = value;
-        return *this;
-    }
-
-    constexpr MPTAmount
-    operator*(mpt_type const& rhs) const
-    {
-        return MPTAmount{mpt_ * rhs};
-    }
-
-    friend constexpr MPTAmount
-    operator*(mpt_type lhs, MPTAmount const& rhs)
-    {
-        // multiplication is commutative
-        return rhs * lhs;
     }
 
     MPTAmount&
@@ -97,27 +77,6 @@ public:
     operator-=(MPTAmount const& other)
     {
         mpt_ -= other.mpt();
-        return *this;
-    }
-
-    MPTAmount&
-    operator+=(mpt_type const& rhs)
-    {
-        mpt_ += rhs;
-        return *this;
-    }
-
-    MPTAmount&
-    operator-=(mpt_type const& rhs)
-    {
-        mpt_ -= rhs;
-        return *this;
-    }
-
-    MPTAmount&
-    operator*=(mpt_type const& rhs)
-    {
-        mpt_ *= rhs;
         return *this;
     }
 

@@ -106,29 +106,29 @@ areComparable(STAmount const& v1, STAmount const& v2)
 
 STAmount::STAmount(SerialIter& sit, SField const& name) : STBase(name)
 {
-    // TODO MPT make sure backward compatible
-
     std::uint64_t value = sit.get64();
-    // TODO must fix serialization for IOU, it incorrectly sets cMPToken
-    bool isMPT = (value & cMPToken) && !(value & cIssuedCurrency);
 
     // native or MPT
-    if ((value & cIssuedCurrency) == 0 || isMPT)
+    if ((value & cIssuedCurrency) == 0)
     {
-        if (isMPT)
+        if ((value & cMPToken) != 0)
         {
-            // mAsset = std::make_pair(
-            //     sit.get32(), static_cast<AccountID>(sit.get160()));
+            // is MPT
+            mOffset = 0;
+            mIsNative = false;
+            mIsNegative = (value & cPositive) == 0;
+            mValue = (value << 8) | sit.get8();
             mAsset = sit.get192();
+            return;
         }
-        else
-            mAsset = xrpIssue();
+        // else is XRP
+        mAsset = xrpIssue();
         // positive
         if ((value & cPositive) != 0)
         {
             mValue = value & cValueMask;
             mOffset = 0;
-            mIsNative = !isMPT;
+            mIsNative = true;
             mIsNegative = false;
             return;
         }
@@ -139,7 +139,7 @@ STAmount::STAmount(SerialIter& sit, SField const& name) : STBase(name)
 
         mValue = value & cValueMask;
         mOffset = 0;
-        mIsNative = !isMPT;
+        mIsNative = true;
         mIsNegative = true;
         return;
     }
@@ -740,7 +740,6 @@ Json::Value STAmount::getJson(JsonOptions) const
 void
 STAmount::add(Serializer& s) const
 {
-    // TODO MPT make sure backward compatible
     if (mIsNative)
     {
         assert(mOffset == 0);
@@ -750,36 +749,31 @@ STAmount::add(Serializer& s) const
         else
             s.add64(mValue);
     }
+    else if (mAsset.isMPT())
+    {
+        auto u8 = static_cast<unsigned char>(cMPToken >> 56);
+        if (!mIsNegative)
+            u8 |= static_cast<unsigned char>(cPositive >> 56);
+        s.add8(u8);
+        s.add64(mValue);
+        auto const& mptIssue = mAsset.mptIssue();
+        s.addBitString(getMptID(mptIssue.account(), mptIssue.sequence()));
+    }
     else
     {
-        if (mAsset.isMPT())
-        {
-            if (mIsNegative)
-                s.add64(mValue | cMPToken);
-            else
-                s.add64(mValue | cMPToken | cPositive);
-            // s.add32(mAsset.mptIssue().sequence());
-            // s.addBitString(mAsset.mptIssue().account());
-            auto const& mptIssue = mAsset.mptIssue();
-            s.addBitString(getMptID(mptIssue.account(), mptIssue.sequence()));
-        }
-        else
-        {
-            if (*this == beast::zero)
-                s.add64(cIssuedCurrency);
-            else if (mIsNegative)  // 512 = not native
-                s.add64(
-                    mValue |
-                    (static_cast<std::uint64_t>(mOffset + 512 + 97)
-                     << (64 - 10)));
-            else  // 256 = positive
-                s.add64(
-                    mValue |
-                    (static_cast<std::uint64_t>(mOffset + 512 + 256 + 97)
-                     << (64 - 10)));
-            s.addBitString(mAsset.issue().currency);
-            s.addBitString(mAsset.issue().account);
-        }
+        if (*this == beast::zero)
+            s.add64(cIssuedCurrency);
+        else if (mIsNegative)  // 512 = not native
+            s.add64(
+                mValue |
+                (static_cast<std::uint64_t>(mOffset + 512 + 97) << (64 - 10)));
+        else  // 256 = positive
+            s.add64(
+                mValue |
+                (static_cast<std::uint64_t>(mOffset + 512 + 256 + 97)
+                 << (64 - 10)));
+        s.addBitString(mAsset.issue().currency);
+        s.addBitString(mAsset.issue().account);
     }
 }
 

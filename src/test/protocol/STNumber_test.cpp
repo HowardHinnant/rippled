@@ -46,6 +46,8 @@ struct STNumber_test : public beast::unit_test::suite
     void
     run() override
     {
+        static_assert(!std::is_convertible_v<STNumber*, Number*>);
+
         {
             STNumber const stnum{sfNumber};
             BEAST_EXPECT(stnum.getSType() == STI_NUMBER);

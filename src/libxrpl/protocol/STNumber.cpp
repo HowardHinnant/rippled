@@ -24,7 +24,7 @@
 namespace ripple {
 
 STNumber::STNumber(SField const& field, Number const& value)
-    : STBase(field), Number(value)
+    : STBase(field), value_(value)
 {
 }
 
@@ -34,7 +34,7 @@ STNumber::STNumber(SerialIter& sit, SField const& field) : STBase(field)
     // to guarantee their order of execution.
     auto mantissa = sit.geti64();
     auto exponent = sit.geti32();
-    *this = Number{mantissa, exponent};
+    value_ = Number{mantissa, exponent};
 }
 
 SerializedTypeID
@@ -46,13 +46,13 @@ STNumber::getSType() const
 std::string
 STNumber::getText() const
 {
-    return to_string(*this);
+    return to_string(value_);
 }
 
 Json::Value
 STNumber::getJson(JsonOptions) const
 {
-    return to_string(*this);
+    return to_string(value_);
 }
 
 void
@@ -60,20 +60,20 @@ STNumber::add(Serializer& s) const
 {
     assert(getFName().isBinary());
     assert(getFName().fieldType == getSType());
-    s.add64(this->mantissa());
-    s.add32(this->exponent());
+    s.add64(value_.mantissa());
+    s.add32(value_.exponent());
 }
 
 Number const&
 STNumber::value() const
 {
-    return *this;
+    return value_;
 }
 
 void
 STNumber::setValue(Number const& v)
 {
-    *this = v;
+    value_ = v;
 }
 
 STBase*
@@ -92,14 +92,14 @@ bool
 STNumber::isEquivalent(STBase const& t) const
 {
     assert(t.getSType() == this->getSType());
-    Number const& v = dynamic_cast<Number const&>(t);
-    return *this == v;
+    STNumber const& v = dynamic_cast<STNumber const&>(t);
+    return value_ == v;
 }
 
 bool
 STNumber::isDefault() const
 {
-    return *this == Number();
+    return value_ == Number();
 }
 
 std::ostream&

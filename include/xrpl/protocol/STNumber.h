@@ -39,16 +39,16 @@ namespace ripple {
  * without paying the storage cost of duplicating asset information
  * that may be deduced from the context.
  */
-class STNumber : public STBase, public CountedObject<STNumber>, public Number
+class STNumber : public STBase, public CountedObject<STNumber>
 {
+    Number value_;
+
 public:
     using value_type = Number;
 
     STNumber() = default;
     explicit STNumber(SField const& field, Number const& value = Number());
     STNumber(SerialIter& sit, SField const& field);
-
-    using Number::operator=;
 
     SerializedTypeID
     getSType() const override;
@@ -67,6 +67,8 @@ public:
     isEquivalent(STBase const& t) const override;
     bool
     isDefault() const override;
+
+    operator Number() const {return value_;}
 
 private:
     STBase*
